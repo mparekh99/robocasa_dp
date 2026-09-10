@@ -70,6 +70,8 @@ pip install hydra-core omegaconf wandb dill av decord termcolor click \
             accelerate numpydantic
 cd ..
 
+pip install "transformers==4.41.2" "tokenizers==0.19.1"
+
 # Known-good versions confirmed by a passing 2-epoch smoke train (2026-05-23):
 #   torch 2.5.1+cu121  torchvision 0.20.1+cu121  numpy 2.2.5  numba 0.61.2
 #   scipy 1.15.3  mujoco 3.3.1  zarr 2.18.3  numcodecs 0.13.1  diffusers 0.31.0
@@ -151,6 +153,23 @@ for item in DATASET_SOUP_REGISTRY['target_atomic_seen']:
 # Section 4 — Smoke train (~5 min, confirms pipeline before committing to a
 # multi-day run)
 # ============================================================================
+
+# Mihir Smoke Test
+
+srun --partition=gpu-interactive --gpus=1 --cpus-per-task=8 --mem=64G --time=2:00:00 -A r02346 --pty bash
+
+MUJOCO_GL=egl HYDRA_FULL_ERROR=1 python train.py \
+>     --config-name=train_diffusion_transformer_bs192 \
+>     task=robocasa/finetune_target_composite_seen \
+>     task.dataset.dataset_soup=null \
+>     '+task.dataset.dataset_paths=[/N/u/mihparek/BigRed200/robocasa/datasets/v1.0/target/composite/SearingMeat/20250812/lerobot]' \
+>     training.device=cuda:0 \
+>     training.num_epochs=2 \
+>     dataloader.num_workers=4 \
+>     val_dataloader.num_workers=4 \
+>     logging.mode=offline
+
+
 
 cd /proj/vondrick3/sruthi/Appaji/robocasa_diffusion_policy
 
